@@ -137,3 +137,60 @@ Agent.prototype.twoInRow = function(pairs, available) {
 	})
 	return returnValue
 }
+
+// Attempt at Minimax below...
+
+Agent.prototype.result = function(board) {
+	if (board.gameOver === 1) {
+		return 1; // player won
+	} else if (board.gameOver === 2) {
+		return -1; // opponent won
+	} else if (board.gameOver === 3) {
+		return 0; // a draw
+	}
+}
+
+
+Agent.prototype.minimax = function(board) {
+
+	var that = this;
+	// Base case: A game-over, return minimax value
+	// Win: 1, Loss: -1, Draw: 0.
+	if (board.gameOver === 0) {
+		return this.result(board);
+	}
+
+
+	// Otherwise keep a tally of the scores and moves
+	var results = [];
+	var moves = [];
+
+	var newBoard = board;
+	newBoard.clone;
+	// For each available move, run minimax recursively
+	this.getFreeCells(board).forEach(function(cell) {
+		// Clone then seed board with a possible move
+		newBoard.move(cell);
+		// Push the outcome to a list of results
+		results.push(that.minimax(newBoard));
+		// Track the moves in array
+		moves.push(cell);
+	})
+
+	// Find max or min depending on turn order
+
+	// Player X was first, so get MAXIMIZED score
+	if (newBoard.X.length === newBoard.O.length) {
+		var maxScoreIndex = results.indexOf(Math.max.apply(Math, results));
+		move = moves[maxScoreIndex];
+		console.log("MAX MOVE: " + move)
+		return results[maxScoreIndex];
+	} else {
+		// Player O goes second, so MINIMIZED score
+		var minScoreIndex = results.indexOf(Math.min.apply(Math, results));
+		move = moves[minScoreIndex];
+		console.log("MIN MOVE: " + move)
+		return results[minScoreIndex];
+	}
+
+}

@@ -1,4 +1,18 @@
-// Tic Tac Toe
+/*
+	Duy Huynh
+	TCSS 435
+	Fall 2015
+	Tic Tac Toe
+
+	I implemented simple rule-of-thumbs in the program to play
+	Tic-Tac-Toe. For example, always go for the middle if possible,
+	then corners. But always win if possible as a priority, then 
+	block before trying anything else.
+
+	I tried to implement minimax as an exercise afterwards but I could
+	not exactly figure out the bugs in the code. I left the functions
+	for the minimax in the code for a later date.
+*/
 var Agent = function() {
 
 }
@@ -7,6 +21,7 @@ var Agent2 = function() {
 
 }
 
+// "Dumb" practice agent that just plays randomly.
 Agent2.prototype.selectMove = function(board) {
 
 	// Array of moves that are available
@@ -18,15 +33,8 @@ Agent2.prototype.selectMove = function(board) {
 	return move = freeCells[Math.floor(Math.random() * freeCells.length)];
 }
 
-
-
+// Agent that uses simple hard-coded heuristics of Tic-Tac-Toe to play. 
 Agent.prototype.selectMove = function(board) {
-
-	/* 
-		1. Pick middle regardless of the move or turn order. It's optimal.
-	 	2. Then if 
-	*/
-	var move; // The selected move
 
 	// X's array of values: board.X
 	// O's array of values: board.O
@@ -42,7 +50,7 @@ Agent.prototype.selectMove = function(board) {
 		-------------
 	*/
 
-
+	var move; // The selected move
 
 	// Array of moves that are available
 	var freeCells = []; // Array of free cells
@@ -53,55 +61,48 @@ Agent.prototype.selectMove = function(board) {
 	// Always pick the middle if available.
 	if (this.takeMiddle(freeCells)) {
 		move = 5;
-	} else {
-		// Check pairs and block or win
-		var xPairs = this.getPairs(board.X)
-		var oPairs = this.getPairs(board.O)
-		move = board.playerOne ? this.blockOrWin(xPairs, oPairs, freeCells) : this.blockOrWin(oPairs, xPairs, freeCells);
-		console.log("What is move?: " + move)
-		console.log(move == null)
 	}
 
+	// If middle was unavailable, then block or win
+	if (move === undefined) {
+		var xPairs = this.getPairs(board.X)
+		var oPairs = this.getPairs(board.O)
 
+		// I went first! I'm X?
+		move = board.X.length === board.O.length ? this.blockOrWin(xPairs, oPairs, freeCells) : this.blockOrWin(oPairs, xPairs, freeCells);
+	}
 
-	if (move === undefined) move = freeCells[Math.floor(Math.random() * freeCells.length)];
+	// Take a corner if no blocking/winning needed
+	if (move === undefined) {
+		move = this.takeCorner(freeCells);
+	}
 
-	console.log("" + board.playerOne + " plays " + move)
-	console.log("X: " + board.X)
-	console.log("O: " + board.O)
-	console.log("End my turn")
+	// If at this point there is no obivious move, take a corner
+	if (move === undefined) {
+		move = freeCells[Math.floor(Math.random() * freeCells.length)];
+	}
+
+	// console.log("X: " + board.X)
+	// console.log("O: " + board.O)
 	return move;
 
 }
 
+// Grab an empty corner.
 Agent.prototype.takeCorner = function(available) {
 	var self = this;
-	var returnCorner;
-	var corners = [8, 6, 4, 2];
-	corners.forEach(function(corner) {
-		if (self.inArray(available, corner)) {
-			self.returnCorner = corner;
-			console.log("Corner found!: " + self.returnCorner)
-		}
-	})
-	console.log("COrner: " + returnCorner)
-	return self.returnCorner;
+	var corners = [2, 4, 6, 8];
+	var availableCorners = available.filter(function(n) {
+		return corners.indexOf(n) != -1;
+	});
+	// console.log("Corners available: " + availableCorners)
+	return availableCorners[Math.floor(Math.random() * availableCorners.length)];
 }
 
+// Always shoot for the middle.
 Agent.prototype.takeMiddle = function(available) {
-	return this.inArray(available, 5);
+	return available.indexOf(5) != -1;
 }
-
-// Checks to see if a spot exists in an array
-Agent.prototype.inArray = function(array, value) {
-	var present = false;
-	for (var i = 1; i < 10; i++) {
-		if (array[i] == value) {
-			present = true;
-		}
-	}
-	return present;
-};
 
 // Returns an array of unique pairs given an array of elements
 Agent.prototype.getPairs = function(array) {
@@ -111,46 +112,28 @@ Agent.prototype.getPairs = function(array) {
 			pairs.push([array[i], array[j]]);
 		}
 	}
-	// How to iterate through the array of pairs:
-	// this.getPairs(freeCells).forEach(function(element){
-	// 		console.log("" + element[0] + ", " + element[1])
-	// 	});
-
-	// BOOK: page 164, 166
 	return pairs;
 }
 
+// Attempt to win if possible, otherwise block opponent
 Agent.prototype.blockOrWin = function(myPairs, theirPairs, available) {
 	var self = this;
 	var returnValue = this.twoInRow(myPairs, available);
-	if (returnValue == null) {
+	if (returnValue === undefined) {
 		return self.twoInRow(theirPairs, available);
-		console.log("Their pair: " + theirPairs)
 	}
 	return returnValue;
-
 }
 
+// Detect two-in-a-rows for potential wins or blocks.
 Agent.prototype.twoInRow = function(pairs, available) {
 	var self = this;
 	var returnValue;
 	pairs.forEach(function(pair) {
-		console.log("Pairs: " + pair[0] + ", " + pair[1])
 		var value = 15 - (pair[0] + pair[1]);
-		if (self.inArray(available, value)) {
+		if (available.indexOf(value) != -1) {
 			returnValue = value;
-			console.log("Return value: " + returnValue)
 		}
 	})
 	return returnValue
-}
-
-Agent.prototype.result = function(board) {
-	if (board.gameOver === 1) {
-		return 10; // player won
-	} else if (board.gameOver === 2) {
-		return -10; // opponent won
-	} else {
-		return 0; // a draw
-	}
 }

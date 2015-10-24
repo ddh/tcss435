@@ -19,6 +19,7 @@ var GameBoard = function () {
     this.playerOne = true;
 };
 
+// Check if the passed in cell is empty or not.
 GameBoard.prototype.cellFree = function (cell) {
     if (this.X.indexOf(cell) < 0 && this.O.indexOf(cell) < 0) return true;
     else return false;
@@ -94,7 +95,7 @@ GameBoard.prototype.playGame = function (pOne, pTwo) {
         if (that.playerOne) that.move(pOne.selectMove(that.clone()));
         else that.move(pTwo.selectMove(that.clone()));
         if (that.gameOver() === 0) {
-            window.setTimeout(requestAnimationFrame, 300, loop);
+            window.setTimeout(requestAnimationFrame, 10, loop);
         }
     }
 
@@ -110,7 +111,7 @@ window.onload = function () {
 
     var gb = new GameBoard();
     var playerOne = new Agent();
-    var playerTwo = new Agent();
+    var playerTwo = new Agent2();
 
     newGame.onclick = function () {
         gb.reset();

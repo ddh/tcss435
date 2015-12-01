@@ -1,24 +1,24 @@
 
-// find and replace CPM with your initials (i.e. ABC)
+// find and replace CARL with your initials (i.e. ABC)
 // change this.name = "Your Chosen Name"
 
 // only change code in selectAction function()
 
-function CPM(game) {
+function CARL(game) {
     this.player = 1;
     this.radius = 10;
     this.rocks = 0;
     this.kills = 0;
-    this.name = "Dr. Marriott";
-    this.color = "White";
+    this.name = "Carl!";
+    this.color = "Yellow";
     this.cooldown = 0;
     Entity.call(this, game, this.radius + Math.random() * (800 - this.radius * 2), this.radius + Math.random() * (800 - this.radius * 2));
 
     this.velocity = { x: 0, y: 0 };
 };
 
-CPM.prototype = new Entity();
-CPM.prototype.constructor = CPM;
+CARL.prototype = new Entity();
+CARL.prototype.constructor = CARL;
 
 // alter the code in this function to create your agent
 // you may check the state but do not change the state of these variables:
@@ -33,21 +33,26 @@ CPM.prototype.constructor = CPM;
 // you may access a list of rocks from this.game.rocks
 // you may access a list of players from this.game.players
 
-CPM.prototype.selectAction = function () {
+CARL.prototype.selectAction = function () {
 
+    // Action contains a x & y velocity, whether it is throwing a rock, what's target?
     var action = { direction: { x: 0, y: 0 }, throwRock: false, target: null};
     var acceleration = 1000000;
     var closest = 1000;
     var target = null;
-    this.visualRadius = 500;
+    this.visualRadius = 500; // Create a buffer-zone aka line-of-sight
 
+    // For each zombie, calculate how close it is to me.
+    // Update my closest variable to the closest zombie and set that zombie as my target entity
     for (var i = 0; i < this.game.zombies.length; i++) {
         var ent = this.game.zombies[i];
         var dist = distance(ent, this);
+        // Update closest zombie
         if (dist < closest) {
             closest = dist;
             target = ent;
         }
+        //
         if (this.collide({x: ent.x, y: ent.y, radius: this.visualRadius})) {
             var difX = (ent.x - this.x) / dist;
             var difY = (ent.y - this.y) / dist;
@@ -77,27 +82,27 @@ CPM.prototype.selectAction = function () {
 
 // do not change code beyond this point
 
-CPM.prototype.collide = function (other) {
+CARL.prototype.collide = function (other) {
     return distance(this, other) < this.radius + other.radius;
 };
 
-CPM.prototype.collideLeft = function () {
+CARL.prototype.collideLeft = function () {
     return (this.x - this.radius) < 0;
 };
 
-CPM.prototype.collideRight = function () {
+CARL.prototype.collideRight = function () {
     return (this.x + this.radius) > 800;
 };
 
-CPM.prototype.collideTop = function () {
+CARL.prototype.collideTop = function () {
     return (this.y - this.radius) < 0;
 };
 
-CPM.prototype.collideBottom = function () {
+CARL.prototype.collideBottom = function () {
     return (this.y + this.radius) > 800;
 };
 
-CPM.prototype.update = function () {
+CARL.prototype.update = function () {
     Entity.prototype.update.call(this);
     // console.log(this.velocity);
     if (this.cooldown > 0) this.cooldown -= this.game.clockTick;
@@ -185,7 +190,7 @@ CPM.prototype.update = function () {
     this.velocity.y -= (1 - friction) * this.game.clockTick * this.velocity.y;
 };
 
-CPM.prototype.draw = function (ctx) {
+CARL.prototype.draw = function (ctx) {
     ctx.beginPath();
     ctx.fillStyle = this.color;
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);

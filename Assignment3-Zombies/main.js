@@ -7,6 +7,7 @@ function distance(a, b) {
     return Math.sqrt(dx * dx + dy * dy);
 }
 
+// Returns a magnitude vector in given direction x,y by dividing by distance between a,b
 function direction(a, b) {
     var dx = a.x - b.x;
     var dy = a.y - b.y;
@@ -19,7 +20,7 @@ function randomInt(n) {
 }
 
 function Rock(game) {
-    this.player = 1;
+    this.player = 1; 
     this.radius = 4;
     this.name = "Rock";
     this.color = "Gray";
@@ -327,7 +328,7 @@ ASSET_MANAGER.downloadAll(function () {
     var gameEngine = new GameEngine();
     var circle;
     for (var i = 0; i < numPlayers; i++) {
-        circle = new CPM(gameEngine);
+        circle = new CARL(gameEngine);
         gameEngine.addEntity(circle);
     }
     

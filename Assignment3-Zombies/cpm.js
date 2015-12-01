@@ -39,7 +39,7 @@ CPM.prototype.selectAction = function () {
     var acceleration = 1000000;
     var closest = 1000;
     var target = null;
-    this.visualRadius = 500;
+    this.visualRadius = 500; // Large agent's collision space
 
     for (var i = 0; i < this.game.zombies.length; i++) {
         var ent = this.game.zombies[i];
@@ -55,8 +55,12 @@ CPM.prototype.selectAction = function () {
             action.direction.y -= difY * acceleration / (dist * dist);
         }
     }
+
+    // Rocks. If it's in appropriate range
     for (var i = 0; i < this.game.rocks.length; i++) {
         var ent = this.game.rocks[i];
+        // Treat removefromworld objects as if they're not there. ie rocks that hit zombie are removed but replaced with
+        // a new rock
         if (!ent.removeFromWorld && !ent.thrown && this.rocks < 2 && this.collide({ x: ent.x, y: ent.y, radius: this.visualRadius })) {
             var dist = distance(this, ent);
             if (dist > this.radius + ent.radius) {
@@ -68,6 +72,8 @@ CPM.prototype.selectAction = function () {
         }
     }
 
+    // For rock throwing
+    // can do action.target = {x:0, y:0}
     if (target) {
         action.target = target;
         action.throwRock = true;

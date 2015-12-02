@@ -33,14 +33,35 @@ CARL.prototype.constructor = CARL;
 // you may access a list of rocks from this.game.rocks
 // you may access a list of players from this.game.players
 
+/*
+    Useful things (work in progress):
+
+        Human:
+        Is other entity in my L.O.S?:   if(this.collide({ x: ent.x, y: ent.y, radius: this.visualRadius }))
+
+
+        Rock stuff:
+            Amount of rocks in hand:    this.rocks
+            Cycling through rocks:      for loop(this.game.rocks.length)
+            Rock thrown?:               !ent.thrown
+            Marked for removal?:        !ent.removeFromWorld
+            Colliding with rock:        game engine determines pickup so ignore it
+
+
+*/
+
 CARL.prototype.selectAction = function () {
 
-    // Action contains a x & y velocity, whether it is throwing a rock, what's target?
+    // Action contains a x & y velocity, whether it is throwing a rock, target DESTINATION of where rock is thrown to
     var action = { direction: { x: 0, y: 0 }, throwRock: false, target: null};
-    var acceleration = 1000000;
-    var closest = 1000;
-    var target = null;
+    var acceleration = 1000000; // Why this acceleration? Does this mean human can change direction on a dime?
+    var closest = 1000; // Starting distance of the nearest zombie
+    var target = null; // Target destination. Can be an entity or arbitrary on-the-fly created entity {x: , y: , radius: }
     this.visualRadius = 500; // Create a buffer-zone aka line-of-sight
+
+    var cornerRadius = 100;
+    var topLeftCorner = {x:0, y:0, radius:cornerRadius};
+    var topRightCorner = {x:0, y:800, radius:cornerRadius};
 
     // For each zombie, calculate how close it is to me.
     // Update my closest variable to the closest zombie and set that zombie as my target entity
@@ -52,14 +73,18 @@ CARL.prototype.selectAction = function () {
             closest = dist;
             target = ent;
         }
-        //
+        // Using my visualRadius (default of 500) determine if a zombie is within this line-of-sight
+        // Then change my direction accordingly
         if (this.collide({x: ent.x, y: ent.y, radius: this.visualRadius})) {
             var difX = (ent.x - this.x) / dist;
             var difY = (ent.y - this.y) / dist;
-            action.direction.x -= difX * acceleration / (dist * dist);
+            action.direction.x -= difX * acceleration / (dist * dist); // why dist^2?
             action.direction.y -= difY * acceleration / (dist * dist);
         }
     }
+
+    // FOr each rock in the game, if it's not marked to be removed and if human has less than 2 in hand
+    // When the human;s line of sight radius (500) contains the rock (collides),
     for (var i = 0; i < this.game.rocks.length; i++) {
         var ent = this.game.rocks[i];
         if (!ent.removeFromWorld && !ent.thrown && this.rocks < 2 && this.collide({ x: ent.x, y: ent.y, radius: this.visualRadius })) {
@@ -73,6 +98,15 @@ CARL.prototype.selectAction = function () {
         }
     }
 
+    // Try repulsion for the corners
+    if(this.collide({x:0,y:0, radius:100}) || this.collide({x:0,y:800, radius:100})||this.collide({x:800,y:0, radius:100})||this.collide({x:800,y:800, radius:100})){
+        action.direction.x -= 100 * acceleration / (dist * dist); // why dist^2?
+        action.direction.y -= 100 * acceleration / (dist * dist);
+    }
+
+
+
+    // If this human has a zombie in line of sight ie 'targetted'... throw the rock
     if (target) {
         action.target = target;
         action.throwRock = true;

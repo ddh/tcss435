@@ -19,6 +19,7 @@ function randomInt(n) {
     return Math.floor(Math.random() * n);
 }
 
+// Has speed, thrown-state:boolean, velocity vector:x,y
 function Rock(game) {
     this.player = 1; 
     this.radius = 4;
@@ -77,6 +78,7 @@ Rock.prototype.update = function () {
         if (this.collideBottom()) this.y = 800 - this.radius;
     }
 
+// Wow what is all of this?
     var chasing = false;
     for (var i = 0; i < this.game.entities.length; i++) {
         var ent = this.game.entities[i];
@@ -133,6 +135,8 @@ function Zombie(game, clone) {
     this.color = "Red";
     this.maxSpeed = minSpeed + (maxSpeed - minSpeed) * Math.random();
 
+
+// What is clone? Is that when a zombie infects a human?
     if (!clone) {
         Entity.call(this, game, this.radius + Math.random() * (800 - this.radius * 2), this.radius + Math.random() * (800 - this.radius * 2));
     } else {
@@ -202,9 +206,15 @@ Zombie.prototype.update = function () {
     }
 
     var chasing = false;
+
+    // For each entity in the game
     for (var i = 0; i < this.game.entities.length; i++) {
         var ent = this.game.entities[i];
+
+        // On collision with another entity...
         if (ent !== this && this.collide(ent)) {
+
+            // If collided with a zombie...
             if (ent.name === "Zombie") {
                 var temp = { x: this.velocity.x, y: this.velocity.y };
 
@@ -227,25 +237,33 @@ Zombie.prototype.update = function () {
                 ent.x += ent.velocity.x * this.game.clockTick;
                 ent.y += ent.velocity.y * this.game.clockTick;
             }
+            // If collided with a human agent...
+            // When the zombie infects a human...print human's #kills thus far
+            // and clone a new zombie using the human.
+            // Mark the human to be removed from the world.
             if (ent.name !== "Zombie" && ent.name !== "Rock" && !ent.removeFromWorld) {
                 ent.removeFromWorld = true;
                 console.log(ent.name + " kills: " + ent.kills);
                 var newZombie = new Zombie(this.game, ent);
                 this.game.addEntity(newZombie);
             }
+
+            // When a zombie collides with a rock and if the rock is being thrown
             if (ent.name === "Rock" && ent.thrown) {
-                this.removeFromWorld = true;
-                ent.thrown = false;
-                ent.velocity.x = 0;
-                ent.velocity.y = 0;
-                ent.thrower.kills++;
+                this.removeFromWorld = true; // Erase the zombie from the field
+                ent.thrown = false; // Rock is no longer being thrown.
+                ent.velocity.x = 0; // Rock has no velocity anymore.
+                ent.velocity.y = 0; // Rock has no velocity anymore.
+                ent.thrower.kills++; // thrower is the entity that threw the rock, give it a point for killing
             }
         }
-        var acceleration = 1000000;
+        var acceleration = 1000000; // Not sure what acceleration does
 
+        // If entity is a human (not collided with) and within zombie's line-of-sight...
+        // Set zombie to be chasing the human
         if (ent.name !== "Zombie" && ent.name !== "Rock" && this.collide({ x: ent.x, y: ent.y, radius: this.visualRadius })) {
             var dist = distance(this, ent);
-            if (dist > this.radius + ent.radius + 2) {
+            if (dist > this.radius + ent.radius + 2) { // What's the +2 for???
                 var difX = (ent.x - this.x)/dist;
                 var difY = (ent.y - this.y)/dist;
                 this.velocity.x += difX * acceleration / (dist * dist);
@@ -257,19 +275,27 @@ Zombie.prototype.update = function () {
         
     }
 
+    // Zombie clustering and mobbing behavior:
+
+    // If this zombie is currently not chasing a human...
     if (!chasing) {
+        // Pick a random zombie and determine distance from it
         ent = this.game.zombies[randomInt(this.game.zombies.length)];
         var dist = distance(this, ent);
-        if (dist > this.radius + ent.radius + 2) {
-            var difX = (ent.x - this.x) / dist;
-            var difY = (ent.y - this.y) / dist;
-            this.velocity.x += difX * acceleration / (dist * dist);
+
+        // If the distance between this zombie and the other zombie...
+        if (dist > this.radius + ent.radius + 2) { // What's the +2 for???
+            var difX = (ent.x - this.x) / dist; // Get unit vector pointed towards the other zombie
+            var difY = (ent.y - this.y) / dist; // Get unit vector pointed towards the other zombie
+            this.velocity.x += difX * acceleration / (dist * dist); // Why divide by dist*dist??
             this.velocity.y += difY * acceleration / (dist * dist);
+
         }
 
     }
 
-    var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+    // Determine the new speed of this zombie
+    var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y); // Pythag
     if (speed > this.maxSpeed) {
         var ratio = this.maxSpeed / speed;
         this.velocity.x *= ratio;
@@ -310,9 +336,9 @@ function Player(game) {
 };
 
 // the "main" code begins here
-var friction = 1;
-var maxSpeed = 100;
-var minSpeed = 5;
+var friction = 1; // Default friction
+var maxSpeed = 100; // Default 100
+var minSpeed = 5; // Default 5
 
 var ASSET_MANAGER = new AssetManager();
 
@@ -321,9 +347,9 @@ ASSET_MANAGER.downloadAll(function () {
     var canvas = document.getElementById('gameWorld');
     var ctx = canvas.getContext('2d');
 
-    var numZombies = 1;
-    var numPlayers = 6;
-    var numRocks = 12;
+    var numZombies = 1; // Default 1 zombie
+    var numPlayers = 6; // Default 6 players
+    var numRocks = 12; // Default was 12 rocks
 
     var gameEngine = new GameEngine();
     var circle;
